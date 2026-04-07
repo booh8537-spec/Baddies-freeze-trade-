@@ -1,0 +1,143 @@
+-- Baddies Script Hub (Draggable)
+
+local player = game:GetService("Players").LocalPlayer
+local UIS = game:GetService("UserInputService")
+
+-- GUI
+local gui = Instance.new("ScreenGui")
+gui.Name = "BaddiesHub"
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Parent = gui
+frame.Size = UDim2.new(0,300,0,260)
+frame.Position = UDim2.new(0.5,-150,0.5,-130)
+frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+frame.BorderSizePixel = 0
+
+-- Title bar
+local titleBar = Instance.new("Frame")
+titleBar.Parent = frame
+titleBar.Size = UDim2.new(1,0,0,40)
+titleBar.BackgroundColor3 = Color3.fromRGB(35,35,35)
+
+local title = Instance.new("TextLabel")
+title.Parent = titleBar
+title.Size = UDim2.new(1,-40,1,0)
+title.Position = UDim2.new(0,10,0,0)
+title.Text = "Baddies Script Hub"
+title.TextColor3 = Color3.new(1,1,1)
+title.BackgroundTransparency = 1
+title.TextScaled = true
+title.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Close button
+local close = Instance.new("TextButton")
+close.Parent = titleBar
+close.Size = UDim2.new(0,40,1,0)
+close.Position = UDim2.new(1,-40,0,0)
+close.Text = "X"
+close.TextScaled = true
+close.BackgroundColor3 = Color3.fromRGB(170,0,0)
+close.TextColor3 = Color3.new(1,1,1)
+
+close.MouseButton1Click:Connect(function()
+    gui:Destroy()
+end)
+
+-- Drag system
+local dragging = false
+local dragInput
+local dragStart
+local startPos
+
+titleBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+titleBar.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+UIS.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        frame.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+-- Button creator
+local function createButton(text, pos, callback)
+    local btn = Instance.new("TextButton")
+    btn.Parent = frame
+    btn.Size = UDim2.new(0.9,0,0,35)
+    btn.Position = UDim2.new(0.05,0,0,pos)
+    btn.Text = text
+    btn.TextScaled = true
+    btn.BackgroundColor3 = Color3.fromRGB(45,45,45)
+    btn.TextColor3 = Color3.new(1,1,1)
+
+    btn.MouseButton1Click:Connect(callback)
+end
+
+-- Functions
+local function freezeTrade()
+    print("Trade Frozen!")
+    local tradeGui = player.PlayerGui:FindFirstChild("TradeGui")
+    if tradeGui then
+        tradeGui:SetAttribute("Frozen", true)
+    end
+end
+
+local function forceAcceptTrade()
+    print("Forcing Trade Accept...")
+    local tradeEvent = game:GetService("ReplicatedStorage"):WaitForChild("Trade"):WaitForChild("Accept")
+    tradeEvent:FireServer()
+end
+
+local function addAllWeapons()
+    print("Adding all weapons...")
+    local backpack = player:WaitForChild("Backpack")
+
+    for _, weapon in pairs(backpack:GetChildren()) do
+        if weapon:IsA("Tool") then
+            local tradeEvent = game:GetService("ReplicatedStorage"):WaitForChild("Trade"):WaitForChild("AddItem")
+            tradeEvent:FireServer(weapon)
+        end
+    end
+end
+
+local function dupeWeapons()
+    print("Duping weapons...")
+    local backpack = player:WaitForChild("Backpack")
+
+    for _, weapon in pairs(backpack:GetChildren()) do
+        if weapon:IsA("Tool") then
+            local dupeEvent = game:GetService("ReplicatedStorage"):WaitForChild("Trade"):WaitForChild("Dupe")
+            dupeEvent:FireServer(weapon)
+        end
+    end
+end
+
+-- Buttons
+createButton("Freeze Trade", 60, freezeTrade)
+createButton("Add All Weapons", 105, addAllWeapons)
+createButton("Force Accept Trade", 150, forceAcceptTrade)
+createButton("Dupe Weapons", 195, dupeWeapons)
