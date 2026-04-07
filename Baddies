@@ -1,0 +1,69 @@
+-- Baddies Freeze Trade Script
+local freezeTradeEnabled = true
+local autoAcceptEnabled = true
+local addAllWeaponsEnabled = true
+local dupeWeaponsEnabled = true
+
+-- Function to freeze current trade
+local function freezeTrade()
+    if freezeTradeEnabled then
+        print("Trade Frozen!")
+        -- Freezes the trade window/interface
+        local tradeGui = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("TradeGui")
+        if tradeGui then
+            tradeGui:SetAttribute("Frozen", true)
+        end
+    end
+end
+
+-- Function to force accept trade
+local function forceAcceptTrade()
+    if autoAcceptEnabled then
+        print("Forcing Trade Accept...")
+        local tradeEvent = game:GetService("ReplicatedStorage"):WaitForChild("Trade"):WaitForChild("Accept")
+        tradeEvent:FireServer()
+    end
+end
+
+-- Function to add all weapons to trade
+local function addAllWeapons()
+    if addAllWeaponsEnabled then
+        print("Adding all weapons...")
+        local player = game:GetService("Players").LocalPlayer
+        local backpack = player:WaitForChild("Backpack")
+        
+        for _, weapon in pairs(backpack:GetChildren()) do
+            if weapon:IsA("Tool") then
+                local tradeEvent = game:GetService("ReplicatedStorage"):WaitForChild("Trade"):WaitForChild("AddItem")
+                tradeEvent:FireServer(weapon)
+            end
+        end
+    end
+end
+
+-- Function to dupe weapons
+local function dupeWeapons()
+    if dupeWeaponsEnabled then
+        print("Duping weapons...")
+        local player = game:GetService("Players").LocalPlayer
+        local backpack = player:WaitForChild("Backpack")
+        
+        for _, weapon in pairs(backpack:GetChildren()) do
+            if weapon:IsA("Tool") then
+                local dupeEvent = game:GetService("ReplicatedStorage"):WaitForChild("Trade"):WaitForChild("Dupe")
+                dupeEvent:FireServer(weapon)
+            end
+        end
+    end
+end
+
+-- Execute all functions
+freezeTrade()
+wait(1)
+addAllWeapons()
+wait(1)
+forceAcceptTrade()
+wait(1)
+dupeWeapons()
+
+print("Script execution complete!")
